@@ -1,11 +1,15 @@
 #Instalacion de las librerias necesarias
 install.packages("corrplot")
 install.packages("ggplot2")
+
+# Importacion de las librerias necesarias
 library(corrplot)
 library(ggplot2)
+
 # 1. Importamos los datos:
 # Definimos los nombres de las columnas manualmente
-nombres <- c("Sex", "Length", "Diameter", "Height", "Whole", "Shucked", "Viscera", "Shell", "Rings")
+nombres <- c("Sex", "Length", "Diameter", "Height", "Whole", "Shucked",
+             "Viscera", "Shell", "Rings")
 
 # Código para leer el archivo local
 # Ponermos "header = FALSE" porque el archivo no tiene títulos en la primera fila
@@ -28,17 +32,25 @@ tabla_visceras <- datos[, c("Viscera", "Shucked")]
 head(tabla_diametro)
 
 
-#---- grafica de las tablas por separado ----
+#---- COMPARACIONES DE LA CARNE RESPECTO AL RESTO DE VARIABLES ESCOGIDAS ----
 
-# relacion con respecto al sexo
+# Comparación respecto al sexo
+# 1. BOXPLOT
 boxplot(Shucked ~ Sex, data = tabla_sexo,
         main = "Distribución del magro de la carne según el sexo",
         xlab = "Sexo (I: infante, M: macho, F: hembra)",
         ylab = "Peso de la carne (g)",
         col = c("lightpink", "lightblue", "lightgreen"))
+# 2. CONTEO
+ggplot(datos, aes(x = Sex, fill = Sex)) +
+  geom_bar(color = "blue", alpha = 0.8) +
+  labs(title = "Cantidad de Ejemplares por Sexo",
+       x = "Sexo",
+       y = "Número de Abulones")
+  theme_classic()
 
-# relacion con respecto al diametro
-
+# Comparación respecto al diámetro
+# 1. SCATTER PLOT
 plot(tabla_diametro$Diameter, tabla_diametro$Shucked,
      main = "Relación lineal: diámetro-peso de la carne",
      xlab = "Diámetro (mm)",
@@ -46,19 +58,52 @@ plot(tabla_diametro$Diameter, tabla_diametro$Shucked,
      col = "steelblue",
      pch = 20)
 
-# relacion con respecto a los anillos
+# 2. GRÁFICO DE HEXÁGONOS
+ggplot(datos, aes(x = Diameter, y = Shucked)) +
+  geom_hex(bins = 45) + #Esto divide el gráfico en 30 hex
+  scale_fill_viridis_c() + #Escala de colores daltónicos
+  labs(title = "Densidad: Diámetro - Carne Magra",
+       x = "Diámetro (mm)",
+       y = "Peso de la carne (g)",
+       fill = "Frecuencia") +
+  theme_classic()
 
+
+# Comparación respecto a los anillos
+#1. CURVA DE CRECIMIENTO
 plot(tabla_anillos$Rings, tabla_anillos$Shucked,
      main = "Curva de crecimiento: anillos-peso de la carne",
      xlab = "Número de anillos",
      ylab = "Peso de la carne (g)",
      col = "darkorange", pch = 18)
 
-# ----- comparacion total del conjunto -------
+#2. POLÍGONO DE FRECUENCIAS
+ggplot(datos, aes(x = Shucked, color = Sex)) +
+  geom_freqpoly(bins = 30, linewidth = 1.2) +
+  labs(title = "Polígono de Frecuencias Peso - Sexo",
+       x = "Peso de la carne (g)",
+       y = "Frecuencia de los Abulones",
+       color = "Sexo") + 
+  theme_classic()
+
+#3. POLÍGONOS DE DENSIDAD
+
+ggplot(datos, aes(x = Shucked, y = Sex)) +
+  geom_density_2d_filled(alpha = 0.2) + # Color en los polígonos
+  geom_density_2d(color = "black", linewidth = 0.1) + # Contorno
+  labs(title = "Mapa de Densidad: Edad - Peso",
+       x = "Número de anillos",
+       y = "Peso de la Carne (g)",
+       fill = "Nivel de \nConcentración") + # \n para salto de línea
+  theme_classic()
+  scale_x_continuous(breaks = seq(0, 30, by = 5)) # Para que el eje X se lea mejor
+
+# ----- COMPARACIÓN TOTAL DEL CONJUNTO -------
 
 columnas_num <- datos [, -1]
 matriz_cor <- cor(columnas_num)
-# Matriz de correlación con cada una de las variables
+
+# MATRIZ DE CORRELACIÓN DE LAS VARIABLES
 corrplot(matriz_cor,
          method = "ellipse",
          type = "upper",
@@ -68,6 +113,20 @@ corrplot(matriz_cor,
          tl.srt = 45,
          title = "Matriz de correlación de variables físicas")
 
-# grafico de dispersion multiple (diametro-shucked) separado por sexo
+# 1. SCATTER PLOT (DIÁMETRO - SHUCKED) RESPECTO AL SEXO
 
-ggplot(datos, aes(x = Diameter, y= Shucked, color = Sex)) + geom_point(alpha = 0.6) + geom_smooth(method = "lm", se = FALSE) + labs(title = "Interacción: diámetro y peso de la carne por sexo", x = "Diámetro (mm)", y = "Peso de la Carne (g)") + theme_minimal()
+  ggplot(datos, aes(x = Diameter, y= Shucked, color = Sex)) + 
+    geom_point(alpha = 0.6) + geom_smooth(method = "lm", se = FALSE) + 
+    labs(title = "Interacción: diámetro y peso de la carne por sexo",
+         x = "Diámetro (mm)", y = "Peso de la Carne (g)") + theme_minimal()
+  
+# 2. SCATTER PLOT (DÍAMETRO - SHUCKED) EN 3 PANELES
+  ggplot(datos, aes(x = Diameter, y = Shucked, color = Sex)) +
+    geom_point(alpha = 0.4, size = 1.5) + #Puntos transparentes
+    geom_smooth(method = "lm", color = "black", se = FALSE, lwd = 1) +#Tendencia
+    facet_wrap(~Sex) + # Separación en 3 paneles
+    labs(title = "Relación Diámetro - Peso con respecto al sexo",
+         x = "Diámetro (mm)",
+         y = "Peso de la Carne (g)") +
+    theme_bw() + 
+    theme(legend.position = "none")
