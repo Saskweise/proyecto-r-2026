@@ -6,3 +6,5 @@ Dada su importancia en la cocina, hemos pensado que a la hora de recolectar esta
 
 # Dataset
 https://archive.ics.uci.edu/dataset/1/abalone
+
+![Mapa de Calor](graficas/Rplot08.png)
