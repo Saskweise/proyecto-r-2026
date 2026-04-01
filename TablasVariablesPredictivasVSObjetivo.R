@@ -184,9 +184,43 @@ plot(cuantiles_teoricos, sort(datos$Shucked),
 #Línea donde se supone que debería estar si se ajusta a una Gamma
 abline(0, 1, col = "red", lwd = 2)
 
-# --------------------- INTERVALO DE CONFIANZA ------------------------
-# Investigando en internet encontré que t.test es el que se suele usar
-int_conf <- t.test(datos$Shucked, conf.level = 0.95)
+# Cálculo de p-valor para la distribución
 
-cat("La media estimada es: ", media, "\n")
-cat("Intervalo de Confianza (95%) para la Media: [", int_conf$conf.int[1], ",", int_conf$conf.int[2], "]\n")
+#1.División de datos en 10 intervalos
+cortes <- quantile(datos$Shucked, probs = seq(0,1, length.out = 11))
+observados <- table(cut(datos$Shucked, breaks = cortes, include.lowest = TRUE))
+
+#2. Probabilidades teóricas según la función gamma
+# Usamos los parámetros forma y escala que hemos calculado antes
+prob_teoricas <- diff(pgamma(cortes, shape = forma, scale = escala))
+
+#3. Hacemos el test de Chi-Cuadrado
+test_ajuste <- chisq.test(observados, p = prob_teoricas / sum(prob_teoricas))
+
+#4. Mostramos el p-valor
+cat("El p-valor del ajuste Gamma es: ", test_ajuste$p.value)
+
+# --------------------- INTERVALOS DE CONFIANZA Y CONTRASTES ------------------------
+
+# 1. Intervalo de confianza (95%) para la media general del peso de la carne (Shucked)
+int_conf <- t.test(datos$Shucked, conf.level = 0.95)
+cat("Intervalo de Confianza (95%) para la Media de Shucked: [", int_conf$conf.int[1], ",", int_conf$conf.int[2], "]\n")
+
+# 2. Contraste de hipótesis: Saber si el peso difiere mucho entre machos y hembras
+# Hipótesis Nula (H0): Las medias son iguales
+# Hipótesis Alternativa (H1): Las medias son distintas
+
+# Filtramos los datos para aislar solo a los ejemplares adultos (M y F)
+datos_adultos <- subset(datos, Sex %in% c("M", "F"))
+
+# Realizamos el contraste de medias (t.test)
+test_sexo <- t.test(Shucked ~ Sex, data = datos_adultos)
+
+# Mostramos el resultado en consola
+print(test_sexo) #cat no funciona con listas
+
+# Extraemos y valoramos el p-valor
+cat("El p-valor del contraste por sexo es:", test_sexo$p.value, "\n")
+
+
+
