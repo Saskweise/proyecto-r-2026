@@ -31,6 +31,15 @@ tabla_visceras <- datos[, c("Viscera", "Shucked")]
 #Comprobamos que está todo bien usando head con alguna de la tablas
 head(tabla_diametro)
 
+#---- ESTUDIO DE MEDIDAS DE CENTRALIZACIÓN Y DISPERSIÓN ----
+
+#Usamos la función descr para obtener media, cuartiles, desviación típica, máximo, mínimo, etc
+
+install.packages("summarytools")
+suppressWarnings(library(summarytools)) #Librería necesaria que tenemos que incluir para poder usar la función
+descr(datos$Shucked)
+stats_tabla <- as.data.frame(descr(datos$Shucked))
+head(stats_tabla,16)
 
 #---- COMPARACIONES DE LA CARNE RESPECTO AL RESTO DE VARIABLES ESCOGIDAS ----
 
