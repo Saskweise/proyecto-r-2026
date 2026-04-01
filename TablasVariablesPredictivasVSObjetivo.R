@@ -207,6 +207,7 @@ int_conf <- t.test(datos$Shucked, conf.level = 0.95)
 cat("Intervalo de Confianza (95%) para la Media de Shucked: [", int_conf$conf.int[1], ",", int_conf$conf.int[2], "]\n")
 
 # 2. Contraste de hipótesis: Saber si el peso difiere mucho entre machos y hembras
+
 # Hipótesis Nula (H0): Las medias son iguales
 # Hipótesis Alternativa (H1): Las medias son distintas
 
@@ -222,5 +223,28 @@ print(test_sexo) #cat no funciona con listas
 # Extraemos y valoramos el p-valor
 cat("El p-valor del contraste por sexo es:", test_sexo$p.value, "\n")
 
+# Como las medias son distintas, el peso sí que influye con respecto al sexo
 
 
+#-------------- REGRESIÓN MÚLTIPLE --------------------
+
+# Para ver cuántas de estas variables afectan a shucked realmente
+  prueba <- lm(Shucked ~ Sex + Length + Diameter + Height + Whole + Viscera +
+                 Shell + Rings, data = datos)
+  summary(prueba)
+  
+  #Como se puede ver, la menos significativa es Height, por lo que la descartamos
+  #Ahora sí hacemos la regresión múltiple pero bien
+  
+  modelo_final <- lm(Shucked ~ Sex + Diameter + Whole + Viscera +
+                       Shell + Rings, data = datos)
+  
+  cat("\n--- RESUMEN DEL MODELO FINAL OPTIMIZADO ---\n")
+  summary(modelo_final)
+  
+  #Gráficos residuales
+  
+  par(mfrow = c(2, 2)) 
+  plot(modelo_final)
+  par(mfrow = c(1, 1))
+  
