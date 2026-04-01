@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #Instalacion de las librerias necesarias
 install.packages("corrplot")
 install.packages("ggplot2")
