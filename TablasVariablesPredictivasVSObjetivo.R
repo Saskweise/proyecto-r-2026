@@ -46,7 +46,7 @@ ggplot(datos, aes(x = Sex, fill = Sex)) +
   geom_bar(color = "blue", alpha = 0.8) +
   labs(title = "Cantidad de Ejemplares por Sexo",
        x = "Sexo",
-       y = "Número de Abulones")
+       y = "Número de Abulones") + 
   theme_classic()
 
 # Comparación respecto al diámetro
@@ -88,14 +88,14 @@ ggplot(datos, aes(x = Shucked, color = Sex)) +
 
 #3. POLÍGONOS DE DENSIDAD
 
-ggplot(datos, aes(x = Shucked, y = Sex)) +
-  geom_density_2d_filled(alpha = 0.2) + # Color en los polígonos
+ggplot(datos, aes(x = Shucked, y = Shucked)) +
+  geom_density_2d_filled(alpha = 0.7) + # Color en los polígonos
   geom_density_2d(color = "black", linewidth = 0.1) + # Contorno
   labs(title = "Mapa de Densidad: Edad - Peso",
        x = "Número de anillos",
        y = "Peso de la Carne (g)",
        fill = "Nivel de \nConcentración") + # \n para salto de línea
-  theme_classic()
+  theme_classic() +
   scale_x_continuous(breaks = seq(0, 30, by = 5)) # Para que el eje X se lea mejor
 
 # ----- COMPARACIÓN TOTAL DEL CONJUNTO -------
@@ -130,3 +130,63 @@ corrplot(matriz_cor,
          y = "Peso de la Carne (g)") +
     theme_bw() + 
     theme(legend.position = "none")
+  
+  
+  
+#-------- MEDIDAS DE CENTRALIZACIÓN Y DE DISPERSIÓN ---------
+  
+# Resumen de cuartiles
+summary(datos$Shucked)
+  
+# Varianza
+var_peso <- var(datos$Shucked)
+
+# Desviación típica
+desviacion_peso <- sd(datos$Shucked)
+
+# Imprimir las medidas
+cat("Desviación típica: ", desviacion_peso, "\nVarianza: ", var_peso)
+
+
+#--------- AJUSTE DE DISTRIBUCIÓN -----------
+
+# 1. Ajuste a una normal ----- No se parece demasiado
+qqnorm(datos$Shucked, main = "Ajuste normal del peso de la carne")
+qqline(datos$Shucked, col = "red", lwd = 2)
+
+# 2. Ajuste a una lognormal ------ Se parece aún menos
+qqnorm(log(datos$Shucked), main = "Ajuste lognormal")
+qqline(log(datos$Shucked), col = "blue", lwd = 2)
+
+# 3. Ajuste a una Gamma --- Se parece bastante
+
+media <- mean(datos$Shucked)
+varianza <- var(datos$Shucked)
+
+# Variables para comprobar si se ajusta a una distribución gamma
+escala <- varianza/media
+forma <- media/escala
+
+cat("Forma: ", forma, "Escala: ", escala) # Imprimir los datos
+
+# Creamos unos cuantiles teóricos de una distribución gamma
+n <- length(datos$Shucked)
+probabilidades <- (1:n - 0.5) / n
+cuantiles_teoricos <- qgamma(probabilidades, shape = forma, scale = escala)
+
+plot(cuantiles_teoricos, sort(datos$Shucked),
+     main = "Ajuste a distribución Gamma",
+     xlab = "Cuantiles Teóricos (Gamma)",
+     ylab = "Cuantiles Reales (Peso Shucked)",
+     pch = 20,
+     color = "darkgreen")
+
+#Línea donde se supone que debería estar si se ajusta a una Gamma
+abline(0, 1, col = "red", lwd = 2)
+
+# --------------------- INTERVALO DE CONFIANZA ------------------------
+# Investigando en internet encontré que t.test es el que se suele usar
+int_conf <- t.test(datos$Shucked, conf.level = 0.95)
+
+cat("La media estimada es: ", media, "\n")
+cat("Intervalo de Confianza (95%) para la Media: [", int_conf$conf.int[1], ",", int_conf$conf.int[2], "]\n")
