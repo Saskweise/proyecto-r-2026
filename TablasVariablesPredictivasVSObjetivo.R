@@ -14,7 +14,11 @@ nombres <- c("Sex", "Length", "Diameter", "Height", "Whole", "Shucked",
 # Código para leer el archivo local
 # Ponermos "header = FALSE" porque el archivo no tiene títulos en la primera fila
 # Usamos col.names para asignar los nombres que hemos definido antes
-datos <- read.csv("abalone.data", header = FALSE, col.names = nombres)
+datos_prueba <- read.csv("abalone.data", header = FALSE, col.names = nombres)
+
+# Nos quedamos solo con los datos que no estropean el ajuste. Si usáramos todo el conjuntos veríamos que los valores grandes
+#y pequeños por algún motivo salen de la tendencia general y rompen el ajuste.
+datos <- subset(datos_prueba, Shucked < 1.0)
 
 # Tabla A: Objetivo + Sexo (Cualitativa)
 tabla_sexo <- datos[, c("Sex", "Shucked")]
@@ -142,22 +146,6 @@ corrplot(matriz_cor,
     theme_bw() + 
     theme(legend.position = "none")
   
-  
-  
-#-------- MEDIDAS DE CENTRALIZACIÓN Y DE DISPERSIÓN ---------
-  
-# Resumen de cuartiles
-summary(datos$Shucked)
-  
-# Varianza
-var_peso <- var(datos$Shucked)
-
-# Desviación típica
-desviacion_peso <- sd(datos$Shucked)
-
-# Imprimir las medidas
-cat("Desviación típica: ", desviacion_peso, "\nVarianza: ", var_peso)
-
 
 #--------- AJUSTE DE DISTRIBUCIÓN -----------
 
@@ -250,6 +238,10 @@ cat("El p-valor del contraste por sexo es:", test_sexo$p.value, "\n")
   prueba <- lm(Shucked ~ Sex + Length + Diameter + Height + Whole + Viscera +
                  Shell + Rings, data = datos)
   summary(prueba)
+#Esto es muy importante, ya que con la matriz de correlación puede haber ciertos valores que
+#aparenten tener buena relación lineal, pero realmente no sea cierto y ese valor venga dado por
+#multicolinealidad. De esta forma nos aseguramos que los valores con pr muy bajo signifiquen que hay linealidad
+#y así hacer una buena selección de cara al modelo
   
   #Como se puede ver, la menos significativa es Height, por lo que la descartamos
   #Ahora sí hacemos la regresión múltiple pero bien
