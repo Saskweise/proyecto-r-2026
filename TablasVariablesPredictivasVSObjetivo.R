@@ -111,8 +111,10 @@ ggplot(datos, aes(x = Shucked, y = Shucked)) +
 
 columnas_num <- datos [, -1]
 matriz_cor <- cor(columnas_num)
+print(matriz_cor)
 
 # MATRIZ DE CORRELACIÓN DE LAS VARIABLES
+#Hacemos un pintado de la matriz para hacer más visual la correlación entre variables
 corrplot(matriz_cor,
          method = "ellipse",
          type = "upper",
@@ -188,25 +190,32 @@ plot(cuantiles_teoricos, sort(datos$Shucked),
      xlab = "Cuantiles Teóricos (Gamma)",
      ylab = "Cuantiles Reales (Peso Shucked)",
      pch = 20,
-     color = "darkgreen")
+     col = "darkgreen")
 
 #Línea donde se supone que debería estar si se ajusta a una Gamma
 abline(0, 1, col = "red", lwd = 2)
+#Tiene un ajuste prácticamente perfecto a excepción de los puntos finales
 
 # Cálculo de p-valor para la distribución
+#Aquí lo que hacemos es pasar de fijarnos únicamente en la representación gráfica de las
+#distribuciones y estudiar de forma más técnica por qué se ajusta más a una gamma
 
 #1.División de datos en 10 intervalos
+#Se hace para poder aplicar el test de Chi_cuadrado, sin ello no se puede. Además, al dividirlo en 10 intervalos aseguramos algo de robustez
 cortes <- quantile(datos$Shucked, probs = seq(0,1, length.out = 11))
 observados <- table(cut(datos$Shucked, breaks = cortes, include.lowest = TRUE))
 
 #2. Probabilidades teóricas según la función gamma
+#Aquí vemos cómo deberían distribuirse los valores en esos intervalos si fuera una gamma perfecta
 # Usamos los parámetros forma y escala que hemos calculado antes
 prob_teoricas <- diff(pgamma(cortes, shape = forma, scale = escala))
 
 #3. Hacemos el test de Chi-Cuadrado
+#Este test lo que hace es comparar los datos reales de cada intervalo con los teóricos calculados previamente para ver cuán robusta es la distribución realmente
 test_ajuste <- chisq.test(observados, p = prob_teoricas / sum(prob_teoricas))
 
 #4. Mostramos el p-valor
+#Este dato nos permite ver si realmente se ajusta o no a una gamma. Debería ser menor de 0,05 para considerar váilido el ajuste
 cat("El p-valor del ajuste Gamma es: ", test_ajuste$p.value)
 
 # --------------------- INTERVALOS DE CONFIANZA Y CONTRASTES ------------------------
