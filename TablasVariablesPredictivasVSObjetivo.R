@@ -14,11 +14,7 @@ nombres <- c("Sex", "Length", "Diameter", "Height", "Whole", "Shucked",
 # Código para leer el archivo local
 # Ponermos "header = FALSE" porque el archivo no tiene títulos en la primera fila
 # Usamos col.names para asignar los nombres que hemos definido antes
-datos_prueba <- read.csv("abalone.data", header = FALSE, col.names = nombres)
-
-# Nos quedamos solo con los datos que no estropean el ajuste. Si usáramos todo el conjuntos veríamos que los valores grandes
-#y pequeños por algún motivo salen de la tendencia general y rompen el ajuste.
-datos <- subset(datos_prueba, Shucked < 1.0)
+datos <- read.csv("abalone.data", header = FALSE, col.names = nombres)
 
 # Tabla A: Objetivo + Sexo (Cualitativa)
 tabla_sexo <- datos[, c("Sex", "Shucked")]
